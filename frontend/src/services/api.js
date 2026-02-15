@@ -1,5 +1,5 @@
 // API service for admin portal
-const API_BASE = '/api'
+const API_BASE = 'https://func-monitoring-admin.azurewebsites.net/api'
 
 async function request(endpoint, token, options = {}) {
   const response = await fetch(`${API_BASE}${endpoint}`, {
