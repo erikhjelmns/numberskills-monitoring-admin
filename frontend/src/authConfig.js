@@ -17,5 +17,5 @@ export const loginRequest = {
 };
 
 export const apiRequest = {
-  scopes: ['api://3868a328-8043-4528-ab51-53f1464dd6ee/.default']
+  scopes: ['api://32c15be5-cce0-4a91-aa79-8cc0d2add348/access_as_user']
 };

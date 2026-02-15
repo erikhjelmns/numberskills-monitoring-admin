@@ -26,7 +26,7 @@ APIM_PRODUCT_ID = os.environ.get('APIM_PRODUCT_ID', 'monitoring-standard')
 
 # Azure AD Configuration
 AZURE_TENANT_ID = os.environ.get('AZURE_TENANT_ID', '0ed11b7c-74bd-478f-8a21-38a7f2e78a5e')
-AZURE_CLIENT_ID = os.environ.get('AZURE_CLIENT_ID', '3868a328-8043-4528-ab51-53f1464dd6ee')
+AZURE_API_CLIENT_ID = os.environ.get('AZURE_API_CLIENT_ID', '32c15be5-cce0-4a91-aa79-8cc0d2add348')  # Backend API app ID
 AZURE_JWKS_URL = f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/discovery/v2.0/keys"
 
 def get_sql_connection():
@@ -69,7 +69,7 @@ def verify_auth(req: func.HttpRequest):
             token,
             signing_key.key,
             algorithms=["RS256"],
-            audience=AZURE_CLIENT_ID,
+            audience=AZURE_API_CLIENT_ID,
             issuer=f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/v2.0"
         )
 
