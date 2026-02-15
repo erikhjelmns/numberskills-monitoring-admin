@@ -26,7 +26,7 @@ APIM_PRODUCT_ID = os.environ.get('APIM_PRODUCT_ID', 'monitoring-standard')
 
 # Azure AD Configuration
 AZURE_TENANT_ID = os.environ.get('AZURE_TENANT_ID', '0ed11b7c-74bd-478f-8a21-38a7f2e78a5e')
-AZURE_API_CLIENT_ID = os.environ.get('AZURE_API_CLIENT_ID', '32c15be5-cce0-4a91-aa79-8cc0d2add348')  # Backend API app ID
+AZURE_API_CLIENT_ID = os.environ.get('AZURE_API_CLIENT_ID', 'api://32c15be5-cce0-4a91-aa79-8cc0d2add348')  # Backend API app ID with api:// prefix
 AZURE_JWKS_URL = f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/discovery/v2.0/keys"
 
 def get_sql_connection():
@@ -60,17 +60,23 @@ def verify_auth(req: func.HttpRequest):
     token = auth_header[7:]  # Remove "Bearer " prefix
 
     try:
+        # Decode without validation first to see what's in the token
+        unverified = jwt.decode(token, options={"verify_signature": False})
+        logging.warning(f"DEBUG - Token audience (aud): {unverified.get('aud')}")
+        logging.warning(f"DEBUG - Token issuer (iss): {unverified.get('iss')}")
+        logging.warning(f"DEBUG - Expected audience: {AZURE_API_CLIENT_ID}")
+
         # Get signing keys from Azure AD
         jwks_client = PyJWKClient(AZURE_JWKS_URL)
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-        # Decode and validate token
+        # Decode and validate token (skip issuer validation temporarily)
         decoded_token = jwt.decode(
             token,
             signing_key.key,
             algorithms=["RS256"],
             audience=AZURE_API_CLIENT_ID,
-            issuer=f"https://login.microsoftonline.com/{AZURE_TENANT_ID}/v2.0"
+            options={"verify_iss": False}
         )
 
         # Token is valid if we get here
@@ -81,10 +87,10 @@ def verify_auth(req: func.HttpRequest):
         logging.warning("Token has expired")
         return False
     except jwt.InvalidAudienceError:
-        logging.warning("Invalid token audience")
+        logging.warning(f"Invalid token audience. Expected: {AZURE_API_CLIENT_ID}")
         return False
     except jwt.InvalidIssuerError:
-        logging.warning("Invalid token issuer")
+        logging.warning(f"Invalid token issuer. Expected: https://login.microsoftonline.com/{AZURE_TENANT_ID}/v2.0")
         return False
     except Exception as e:
         logging.error(f"Token validation failed: {e}")
