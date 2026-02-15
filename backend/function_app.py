@@ -370,38 +370,26 @@ def delete_customer(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         customer_id = req.route_params.get('customer_id')
+        logging.warning(f"DELETE: customer_id={customer_id}")
 
+        # Delete from APIM using predictable subscription ID
+        subscription_id = f"sub-{customer_id[:8]}"
+        logging.warning(f"DELETE: Attempting to delete APIM subscription_id={subscription_id}")
+        try:
+            apim_client = get_apim_client()
+            apim_client.subscription.delete(
+                resource_group_name=APIM_RESOURCE_GROUP,
+                service_name=APIM_SERVICE_NAME,
+                sid=subscription_id,
+                if_match="*"  # Required - * means delete regardless of ETag
+            )
+            logging.warning(f"DELETE: Successfully deleted APIM subscription: {subscription_id}")
+        except Exception as e:
+            logging.error(f"DELETE: Failed to delete APIM subscription {subscription_id}: {e}")
+
+        # Delete from SQL
         conn = get_sql_connection()
         cursor = conn.cursor()
-
-        # Get subscription info before deleting
-        cursor.execute("""
-            SELECT subscription_key FROM ApiSubscriptions
-            WHERE customer_id = ?
-        """, customer_id)
-
-        row = cursor.fetchone()
-        if row:
-            subscription_key = row.subscription_key
-
-            # Delete from APIM (find subscription by key)
-            try:
-                apim_client = get_apim_client()
-                subscriptions = apim_client.subscription.list(
-                    resource_group_name=APIM_RESOURCE_GROUP,
-                    service_name=APIM_SERVICE_NAME
-                )
-
-                for sub in subscriptions:
-                    if sub.primary_key == subscription_key:
-                        apim_client.subscription.delete(
-                            resource_group_name=APIM_RESOURCE_GROUP,
-                            service_name=APIM_SERVICE_NAME,
-                            sid=sub.name
-                        )
-                        break
-            except Exception as e:
-                logging.warning(f"Failed to delete APIM subscription: {e}")
 
         # Delete from SQL (cascade will handle related records)
         cursor.execute("DELETE FROM ApiSubscriptions WHERE customer_id = ?", customer_id)
