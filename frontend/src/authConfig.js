@@ -17,5 +17,5 @@ export const loginRequest = {
 };
 
 export const apiRequest = {
-  scopes: ['openid', 'profile', 'email']
+  scopes: ['api://3868a328-8043-4528-ab51-53f1464dd6ee/access_as_user']
 };
