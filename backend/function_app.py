@@ -92,6 +92,20 @@ def verify_auth(req: func.HttpRequest):
 
 
 # ============================================
+# Health Check
+# ============================================
+
+@app.route(route="health", methods=["GET"])
+def health(req: func.HttpRequest) -> func.HttpResponse:
+    """Health check endpoint - no auth required"""
+    return func.HttpResponse(
+        json.dumps({"status": "healthy", "message": "Backend is running"}),
+        status_code=200,
+        mimetype="application/json"
+    )
+
+
+# ============================================
 # Dashboard Endpoints
 # ============================================
 
