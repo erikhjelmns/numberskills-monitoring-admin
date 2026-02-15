@@ -58,7 +58,7 @@ export default function CustomerForm({ onSubmit, onCancel }) {
               required
               placeholder="e.g., abc-123-def-456"
             />
-            <small>The customer's Microsoft Fabric tenant ID</small>
+            <small>The customer's Azure AD tenant ID</small>
           </div>
 
           <div className="form-group">

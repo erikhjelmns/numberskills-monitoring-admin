@@ -60,23 +60,17 @@ def verify_auth(req: func.HttpRequest):
     token = auth_header[7:]  # Remove "Bearer " prefix
 
     try:
-        # Decode without validation first to see what's in the token
-        unverified = jwt.decode(token, options={"verify_signature": False})
-        logging.warning(f"DEBUG - Token audience (aud): {unverified.get('aud')}")
-        logging.warning(f"DEBUG - Token issuer (iss): {unverified.get('iss')}")
-        logging.warning(f"DEBUG - Expected audience: {AZURE_API_CLIENT_ID}")
-
         # Get signing keys from Azure AD
         jwks_client = PyJWKClient(AZURE_JWKS_URL)
         signing_key = jwks_client.get_signing_key_from_jwt(token)
 
-        # Decode and validate token (skip issuer validation temporarily)
+        # Decode and validate token
         decoded_token = jwt.decode(
             token,
             signing_key.key,
             algorithms=["RS256"],
             audience=AZURE_API_CLIENT_ID,
-            options={"verify_iss": False}
+            issuer=f"https://sts.windows.net/{AZURE_TENANT_ID}/"
         )
 
         # Token is valid if we get here
@@ -370,11 +364,9 @@ def delete_customer(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         customer_id = req.route_params.get('customer_id')
-        logging.warning(f"DELETE: customer_id={customer_id}")
 
         # Delete from APIM using predictable subscription ID
         subscription_id = f"sub-{customer_id[:8]}"
-        logging.warning(f"DELETE: Attempting to delete APIM subscription_id={subscription_id}")
         try:
             apim_client = get_apim_client()
             apim_client.subscription.delete(
@@ -383,9 +375,8 @@ def delete_customer(req: func.HttpRequest) -> func.HttpResponse:
                 sid=subscription_id,
                 if_match="*"  # Required - * means delete regardless of ETag
             )
-            logging.warning(f"DELETE: Successfully deleted APIM subscription: {subscription_id}")
         except Exception as e:
-            logging.error(f"DELETE: Failed to delete APIM subscription {subscription_id}: {e}")
+            logging.warning(f"Failed to delete APIM subscription {subscription_id}: {e}")
 
         # Delete from SQL
         conn = get_sql_connection()
