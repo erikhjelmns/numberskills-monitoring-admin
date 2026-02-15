@@ -1,0 +1,18 @@
+[
+  {
+    "allowedMemberTypes": ["User"],
+    "description": "Administrator access to monitoring portal",
+    "displayName": "Admin",
+    "id": "b649a4fb-48f9-408f-892f-65a18b9284b7",
+    "isEnabled": true,
+    "value": "admin"
+  },
+  {
+    "allowedMemberTypes": ["User"],
+    "description": "Operator access to monitoring portal (read-only)",
+    "displayName": "Operator",
+    "id": "91f7c651-3859-4d5c-b091-ed25ab05fb12",
+    "isEnabled": true,
+    "value": "operator"
+  }
+]

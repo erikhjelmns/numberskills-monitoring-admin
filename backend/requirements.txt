@@ -1,0 +1,7 @@
+azure-functions
+pyodbc
+azure-mgmt-apimanagement
+azure-identity
+requests
+PyJWT[crypto]
+cryptography

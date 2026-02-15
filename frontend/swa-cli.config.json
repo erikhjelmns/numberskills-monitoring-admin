@@ -1,0 +1,12 @@
+{
+  "$schema": "https://aka.ms/azure/static-web-apps-cli/schema",
+  "configurations": {
+    "app": {
+      "outputLocation": "dist",
+      "appLocation": ".",
+      "apiLocation": "",
+      "appName": "swa-monitoring-admin",
+      "resourceGroup": "rg-customer-monitoring-prod"
+    }
+  }
+}
